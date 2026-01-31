@@ -23,7 +23,7 @@ xdg-desktop-portal-gtk
 
 # 3️⃣ Hyprland stack
 sudo pacman -S --needed --noconfirm \
-hyprland hypridle hyprlock hyprland-plugins \
+hyprland hypridle hyprlock \
 grim slurp swappy pamixer playerctl brightnessctl
 
 # 4️⃣ UI / Theming
