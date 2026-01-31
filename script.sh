@@ -30,7 +30,7 @@ grim slurp swappy pamixer playerctl brightnessctl
 sudo pacman -S --needed --noconfirm \
 mako swww rofi kitty firefox qt6ct kvantum \
 papirus-icon-theme \
-ttf-manrope ttf-nerd-fonts-symbols inter-font
+ttf-nerd-fonts-symbols inter-font
 
 # 5️⃣ Utilities
 sudo pacman -S --needed --noconfirm \
