@@ -1,85 +1,96 @@
 #!/usr/bin/env bash
 set -e
 
-REPO_URL="https://github.com/snes19xx/dotfiles"
-DOTDIR="$HOME/.dotfiles"
+echo "📦 Instalando dependências dos dotfiles (pacman + AUR)"
+echo "------------------------------------------------------"
 
-echo "🎮 Instalando snes19xx dotfiles (Hyprland setup)"
-echo "-----------------------------------------------"
+# Lista completa de pacotes (README)
+PACKAGES=(
+  hyprland
+  hypridle
+  hyprlock
+  hyprshade
+  hyprland-plugins
+  xdg-utils
+  xdg-desktop-portal-hyprland
+  xdg-desktop-portal-kde
+  xdg-desktop-portal-gtk
+  polkit-gnome
+  sddm
+  networkmanager
+  bluez
+  blueman
+  lua
+  mako
+  swww
+  waypaper
+  rofi
+  kitty
+  firefox
+  colorreload-gtk-module
+  everforest-gtk-theme
+  qt6ct
+  kvantum
+  papirus-icon-theme
+  ttf-manrope
+  ttf-nerd-fonts-symbols
+  inter-font
+  grim
+  slurp
+  swappy
+  grimblast
+  pamixer
+  pipewire-pulse
+  playerctl
+  brightnessctl
+  quickshell
+  vdirsyncer
+  khal
+  evercal
+  curl
+  jq
+  flutter
+  dart
+  auto-cpufreq
+)
 
-# 1️⃣ Atualizar sistema
+PACMAN_PKGS=()
+AUR_PKGS=()
+
+echo "🔎 Checando disponibilidade no pacman..."
+
+for pkg in "${PACKAGES[@]}"; do
+  if pacman -Si "$pkg" &>/dev/null; then
+    PACMAN_PKGS+=("$pkg")
+  else
+    AUR_PKGS+=("$pkg")
+  fi
+done
+
+# Atualizar sistema
 sudo pacman -Syu --noconfirm
 
-# 2️⃣ Pacotes base + system
-sudo pacman -S --needed --noconfirm \
-git base-devel curl jq lua \
-networkmanager bluez blueman \
-pipewire pipewire-pulse wireplumber \
-polkit-gnome sddm \
-xdg-utils \
-xdg-desktop-portal-hyprland \
-xdg-desktop-portal-kde \
-xdg-desktop-portal-gtk
-
-# 3️⃣ Hyprland stack
-sudo pacman -S --needed --noconfirm \
-hyprland hypridle hyprlock \
-grim slurp swappy pamixer playerctl brightnessctl
-
-# 4️⃣ UI / Theming
-sudo pacman -S --needed --noconfirm \
-mako swww rofi kitty firefox qt6ct kvantum \
-papirus-icon-theme \
-ttf-nerd-fonts-symbols inter-font
-
-# 5️⃣ Utilities
-sudo pacman -S --needed --noconfirm \
-khal vdirsyncer \
-curl jq \
-auto-cpufreq
-
-# 6️⃣ AUR packages
-if ! command -v paru &>/dev/null; then
-  echo "📦 Instalando paru"
-  git clone https://aur.archlinux.org/paru.git /tmp/paru
-  (cd /tmp/paru && makepkg -si --noconfirm)
+# Instalar pacman packages
+if [ ${#PACMAN_PKGS[@]} -gt 0 ]; then
+  echo "📦 Instalando via pacman:"
+  printf '  - %s\n' "${PACMAN_PKGS[@]}"
+  sudo pacman -S --needed --noconfirm "${PACMAN_PKGS[@]}"
 fi
 
-paru -S --needed --noconfirm \
-hyprshade waypaper quickshell \
-everforest-gtk-theme
+# Garantir AUR helper
+if [ ${#AUR_PKGS[@]} -gt 0 ]; then
+  if ! command -v paru &>/dev/null; then
+    echo "📦 Instalando paru (AUR helper)"
+    sudo pacman -S --needed --noconfirm base-devel git
+    git clone https://aur.archlinux.org/paru.git /tmp/paru
+    (cd /tmp/paru && makepkg -si --noconfirm)
+  fi
 
-# 7️⃣ Clonar dotfiles
-if [ ! -d "$DOTDIR" ]; then
-  git clone "$REPO_URL" "$DOTDIR"
-else
-  echo "📁 Dotfiles já existem, pulando clone"
-fi
-
-# 8️⃣ Copiar configs
-echo "📂 Copiando configs para ~/.config"
-mkdir -p ~/.config
-cp -r "$DOTDIR/.config/"* ~/.config/
-
-# 9️⃣ SDDM Pixel theme
-echo "🎨 Instalando tema Pixel do SDDM"
-sudo mkdir -p /usr/share/sddm/themes
-sudo cp -r "$DOTDIR/sddm/themes/pixel" /usr/share/sddm/themes/
-
-sudo mkdir -p /etc/sddm.conf.d
-echo -e "[Theme]\nCurrent=pixel" | sudo tee /etc/sddm.conf.d/theme.conf
-
-# 🔟 Serviços
-sudo systemctl enable NetworkManager bluetooth sddm
-
-# 1️⃣1️⃣ Hyprshade shader check
-mkdir -p ~/.config/hypr/shaders
-if [ ! -f ~/.config/hypr/shaders/grayscale.glsl ]; then
-  cp "$DOTDIR/.config/hypr/shaders/grayscale.glsl" ~/.config/hypr/shaders/
+  echo "📦 Instalando via AUR:"
+  printf '  - %s\n' "${AUR_PKGS[@]}"
+  paru -S --needed --noconfirm "${AUR_PKGS[@]}"
 fi
 
 echo
-echo "✅ Dotfiles instalados com sucesso!"
-echo "⚠️ Layout é hardcoded para 3:2"
-echo "➡️ Reinicie e escolha Hyprland no SDDM"
-echo "➡️ Se quebrar algo, é só apagar ~/.config 😄"
+echo "✅ Todos os pacotes instalados"
+echo "➡️ Agora é só aplicar os dotfiles"
